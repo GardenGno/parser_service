@@ -1,4 +1,5 @@
 import re
+from . import register_parser
 from urllib.parse import urljoin
 from playwright.async_api import async_playwright
 from bs4 import BeautifulSoup
@@ -123,7 +124,7 @@ async def extract_data(page, url, tx1, tx2):
 
     return main_info
 
-
+@register_parser("baucenter", "Бауцентр")
 async def run_parser(url, tx1, tx2):
     results = []
     async with async_playwright() as p:
