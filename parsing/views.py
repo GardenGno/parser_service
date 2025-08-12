@@ -24,12 +24,14 @@ class StartParseView(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class ParseStatusView(APIView):
-    """
-    GET-запрос для получения только статуса по id запроса.
-    """
     def get(self, request, pk):
         try:
             parse_request = Request.objects.get(pk=pk)
         except Request.DoesNotExist:
             return Response({'error': 'Not found'}, status=404)
-        return Response({'status': parse_request.status})
+        data = {'status': parse_request.status}
+        if parse_request.status == 'error':
+            data['error_message'] = parse_request.error_message
+        if parse_request.status == 'done':
+            data['results_count'] = parse_request.results.count()
+        return Response(data)

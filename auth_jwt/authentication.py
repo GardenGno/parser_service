@@ -1,18 +1,7 @@
-from dataclasses import dataclass
+# auth_jwt/authentication.py
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework_simplejwt.exceptions import AuthenticationFailed, InvalidToken
-from .models import UserToken
-from .utils import get_user_by_id
-
-@dataclass
-class ExternalAuthUser:
-    id: int
-    email: str = ""
-    name: str = ""
-    @property
-    def is_authenticated(self): return True
-    @property
-    def is_anonymous(self): return False
+from .models import UserToken, ExternalUser
 
 class DBJWTAuthentication(JWTAuthentication):
     def get_validated_token(self, raw_token):
@@ -28,7 +17,10 @@ class DBJWTAuthentication(JWTAuthentication):
         user_id = validated_token.get("user_id")
         if user_id is None:
             raise InvalidToken("Token missing user_id")
-        user = get_user_by_id(int(user_id))
-        if not user:
+
+        try:
+            user = ExternalUser.objects.get(pk=int(user_id))
+        except ExternalUser.DoesNotExist:
             raise AuthenticationFailed("User not found")
-        return ExternalAuthUser(id=user["id"], email=user["email"], name=user["name"])
+
+        return user
